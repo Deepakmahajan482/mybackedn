@@ -17,12 +17,17 @@ mongoose.connect("mongodb+srv://deepakmahajan3028:ZMqZbfwrrANaSi7k@cluster0.ejac
 
 // Invoice Schema
 const invoiceSchema = new mongoose.Schema({
-    buyerName: String,
-    date: Date,
-    totalAmount: Number,
-    totalQuantity: Number,
-    isPaid: Boolean
-});
+  buyerName: String,
+  date: Date,
+  totalAmount: Number,
+  totalQuantity: Number,
+  isPaid: Boolean,
+  items: [{
+      name: String,
+      quantity: Number,
+      pricePerUnit: Number
+  }]
+});;
 
 const Invoice = mongoose.model("Invoice", invoiceSchema);
 
@@ -76,3 +81,5 @@ app.delete("/delete-invoice/:id", async (req, res) => {
 
 // Start Server
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// 
+

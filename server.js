@@ -1,58 +1,101 @@
+// const express = require('express');
+// const mongoose = require('mongoose');
+// const cors = require('cors');
+
+// // Initialize Express
+// const app = express();
+// app.use(cors());
+// app.use(express.json());
+
+// // Connect to MongoDB
+// mongoose.connect('mongodb+srv://deepakmahajan3028:ZMqZbfwrrANaSi7k@cluster0.ejacp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true
+// }).then(() => console.log("MongoDB Connected"))
+//   .catch(err => console.error("MongoDB Connection Error:", err));
+
+// // Define Schema and Model
+// const invoiceSchema = new mongoose.Schema({
+//   buyerName: String,
+//   totalAmount: Number,
+//   totalQuantity: Number,
+//   items: [
+//     {
+//       name: String,
+//       price: Number,
+//       quantity: Number,
+//       total: Number
+//     }
+//   ],
+//   date: { type: Date, default: Date.now }
+// });
+
+// const Invoice = mongoose.model('Invoice', invoiceSchema);
+
+// // API Route to Save Invoice
+// app.post('/save-invoice', async (req, res) => {
+//   try {
+//     const newInvoice = new Invoice(req.body);
+//     await newInvoice.save();
+//     res.json({ message: "Invoice saved successfully!" });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+// // API Route to Get Invoices
+// app.get('/get-invoices', async (req, res) => {
+//   try {
+//     const invoices = await Invoice.find();
+//     res.json(invoices);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+// // Start Server
+// const PORT = 5000;
+// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
-// Initialize Express
 const app = express();
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-// Connect to MongoDB
 mongoose.connect('mongodb+srv://deepakmahajan3028:ZMqZbfwrrANaSi7k@cluster0.ejacp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => console.log("MongoDB Connected"))
-  .catch(err => console.error("MongoDB Connection Error:", err));
-
-// Define Schema and Model
-const invoiceSchema = new mongoose.Schema({
-  buyerName: String,
-  totalAmount: Number,
-  totalQuantity: Number,
-  items: [
-    {
-      name: String,
-      price: Number,
-      quantity: Number,
-      total: Number
-    }
-  ],
-  date: { type: Date, default: Date.now }
+    useNewUrlParser: true,
+    useUnifiedTopology: true
 });
 
-const Invoice = mongoose.model('Invoice', invoiceSchema);
+const InvoiceSchema = new mongoose.Schema({
+    buyerName: String,
+    totalAmount: Number,
+    totalQuantity: Number,
+    items: [{ name: String, price: Number, quantity: Number, total: Number }],
+    date: { type: Date, default: Date.now }
+});
 
-// API Route to Save Invoice
+const Invoice = mongoose.model('Invoice', InvoiceSchema);
+
+// Save Invoice
 app.post('/save-invoice', async (req, res) => {
-  try {
-    const newInvoice = new Invoice(req.body);
-    await newInvoice.save();
+    const invoice = new Invoice(req.body);
+    await invoice.save();
     res.json({ message: "Invoice saved successfully!" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
 });
 
-// API Route to Get Invoices
+// Get All Invoices
 app.get('/get-invoices', async (req, res) => {
-  try {
-    const invoices = await Invoice.find();
+    const invoices = await Invoice.find().sort({ date: -1 });
     res.json(invoices);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
 });
 
-// Start Server
-const PORT = 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Get Single Invoice
+app.get('/get-invoice/:id', async (req, res) => {
+    const invoice = await Invoice.findById(req.params.id);
+    res.json(invoice);
+});
+
+app.listen(5000, () => console.log('Server running on port 5000'));

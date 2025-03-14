@@ -1,101 +1,78 @@
-// const express = require('express');
-// const mongoose = require('mongoose');
-// const cors = require('cors');
 
-// // Initialize Express
-// const app = express();
-// app.use(cors());
-// app.use(express.json());
-
-// // Connect to MongoDB
-// mongoose.connect('mongodb+srv://deepakmahajan3028:ZMqZbfwrrANaSi7k@cluster0.ejacp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true
-// }).then(() => console.log("MongoDB Connected"))
-//   .catch(err => console.error("MongoDB Connection Error:", err));
-
-// // Define Schema and Model
-// const invoiceSchema = new mongoose.Schema({
-//   buyerName: String,
-//   totalAmount: Number,
-//   totalQuantity: Number,
-//   items: [
-//     {
-//       name: String,
-//       price: Number,
-//       quantity: Number,
-//       total: Number
-//     }
-//   ],
-//   date: { type: Date, default: Date.now }
-// });
-
-// const Invoice = mongoose.model('Invoice', invoiceSchema);
-
-// // API Route to Save Invoice
-// app.post('/save-invoice', async (req, res) => {
-//   try {
-//     const newInvoice = new Invoice(req.body);
-//     await newInvoice.save();
-//     res.json({ message: "Invoice saved successfully!" });
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// });
-
-// // API Route to Get Invoices
-// app.get('/get-invoices', async (req, res) => {
-//   try {
-//     const invoices = await Invoice.find();
-//     res.json(invoices);
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// });
-
-// // Start Server
-// const PORT = 5000;
-// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
 
 const app = express();
-app.use(express.json());
+const PORT = process.env.PORT || 5000;
+
+// Middleware
 app.use(cors());
+app.use(express.json());
 
-mongoose.connect('mongodb+srv://deepakmahajan3028:ZMqZbfwrrANaSi7k@cluster0.ejacp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+// Connect to MongoDB
+mongoose.connect("mongodb+srv://deepakmahajan3028:ZMqZbfwrrANaSi7k@cluster0.ejacp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log("✅ MongoDB Connected"))
+    .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
-const InvoiceSchema = new mongoose.Schema({
+// Invoice Schema
+const invoiceSchema = new mongoose.Schema({
     buyerName: String,
+    date: Date,
     totalAmount: Number,
     totalQuantity: Number,
-    items: [{ name: String, price: Number, quantity: Number, total: Number }],
-    date: { type: Date, default: Date.now }
+    isPaid: Boolean
 });
 
-const Invoice = mongoose.model('Invoice', InvoiceSchema);
+const Invoice = mongoose.model("Invoice", invoiceSchema);
 
-// Save Invoice
-app.post('/save-invoice', async (req, res) => {
-    const invoice = new Invoice(req.body);
-    await invoice.save();
-    res.json({ message: "Invoice saved successfully!" });
+// ✅ **1. Get All Invoices**
+app.get("/get-invoices", async (req, res) => {
+    try {
+        const invoices = await Invoice.find();
+        res.json(invoices);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch invoices" });
+    }
 });
 
-// Get All Invoices
-app.get('/get-invoices', async (req, res) => {
-    const invoices = await Invoice.find().sort({ date: -1 });
-    res.json(invoices);
+// ✅ **2. Update Invoice Payment Status**
+app.patch("/update-invoice-status/:id", async (req, res) => {
+    const { id } = req.params;
+    const { isPaid } = req.body;
+
+    try {
+        const updatedInvoice = await Invoice.findByIdAndUpdate(id, { isPaid }, { new: true });
+        if (!updatedInvoice) return res.status(404).json({ error: "Invoice not found" });
+
+        res.json(updatedInvoice);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to update invoice status" });
+    }
 });
 
-// Get Single Invoice
-app.get('/get-invoice/:id', async (req, res) => {
-    const invoice = await Invoice.findById(req.params.id);
-    res.json(invoice);
+// ✅ **3. Add a New Invoice**
+app.post("/add-invoice", async (req, res) => {
+    try {
+        const newInvoice = new Invoice(req.body);
+        await newInvoice.save();
+        res.json(newInvoice);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to create invoice" });
+    }
 });
 
-app.listen(5000, () => console.log('Server running on port 5000'));
+// ✅ **4. Delete an Invoice**
+app.delete("/delete-invoice/:id", async (req, res) => {
+    try {
+        const deletedInvoice = await Invoice.findByIdAndDelete(req.params.id);
+        if (!deletedInvoice) return res.status(404).json({ error: "Invoice not found" });
+
+        res.json({ message: "Invoice deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to delete invoice" });
+    }
+});
+
+// Start Server
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

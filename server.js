@@ -79,6 +79,18 @@ app.delete("/delete-invoice/:id", async (req, res) => {
     }
 });
 
+// ✅ **5. Get Single Invoice by ID**
+app.get("/get-invoice/:id", async (req, res) => {
+  try {
+      const invoice = await Invoice.findById(req.params.id);
+      if (!invoice) return res.status(404).json({ error: "Invoice not found" });
+
+      res.json(invoice);
+  } catch (error) {
+      res.status(500).json({ error: "Failed to fetch invoice details" });
+  }
+});
+
 // Start Server
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 // 

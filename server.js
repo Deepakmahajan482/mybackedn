@@ -49,6 +49,34 @@ app.post("/add-invoice", async (req, res) => {
         res.status(500).json({ error: "Failed to create invoice" });
     }
 });
+//delete
+app.delete("/delete-invoice/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        await Invoice.findByIdAndDelete(id);
+        res.json({ message: "Invoice deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Error deleting invoice", error });
+    }
+});
+
+// ✅ Update Invoice Status
+app.patch("/update-invoice-status/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { isPaid } = req.body;
+
+        const updatedInvoice = await Invoice.findByIdAndUpdate(id, { isPaid }, { new: true });
+
+        if (!updatedInvoice) {
+            return res.status(404).json({ message: "Invoice not found" });
+        }
+
+        res.json({ message: "Invoice status updated", invoice: updatedInvoice });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating invoice status", error });
+    }
+});
 
 // ✅ Start Server
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
